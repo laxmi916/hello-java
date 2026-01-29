@@ -1,0 +1,52 @@
+pipeline {
+    agent any
+
+    tools {
+        jdk 'JDK21'
+    }
+
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+                echo 'Code already checked out from Git'
+            }
+        }
+
+        stage('Compile Java') {
+            steps {
+                sh '''
+                    javac src/Hello.java
+                    jar cfe hello.jar Hello src/Hello.class
+                '''
+            }
+        }
+
+        stage('Prepare Package Directory') {
+            steps {
+                sh '''
+                    mkdir -p package/usr/local/bin
+                    cp hello.jar package/usr/local/bin/
+                '''
+            }
+        }
+
+        stage('Build DEB using FPM') {
+            steps {
+                sh '''
+                    fpm -s dir -t deb \
+                        -n hello-java \
+                        -v 1.0 \
+                        --prefix=/ \
+                        -C package
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            archiveArtifacts artifacts: '*.deb'
+        }
+    }
+}
