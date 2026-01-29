@@ -10,14 +10,17 @@ pipeline {
             }
         }
 
-        stage('Compile Java') {
-            steps {
-                sh '''
-                    javac src/Hello.java
-                    jar cfe hello.jar Hello src/Hello.class
-                '''
-            }
+    stage('Compile Java') {
+        steps {
+            sh '''
+                rm -rf build
+                mkdir build
+                javac -d build src/Hello.java
+                jar cfe hello.jar Hello -C build .
+            '''
         }
+    }
+
 
         stage('Prepare Package Directory') {
             steps {
